@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+<!-- 	<constant name="struts.devMode" value="true" /> -->
+	<!--提高过滤的性能值处理action请求 -->
+	<!--配置国际化解决英文浏览器的日期回显问题 -->
+	<constant name="strust.loacle" value="zh_CN" />
+
+	<package name="default" namespace="/" extends="struts-default">
+		<interceptors>
+		<!--配置拦截器 栈 -->
+			<interceptor-stack name="pssStack">
+				<interceptor-ref name="paramsPrepareParamsStack" />
+			</interceptor-stack>
+		</interceptors>
+	   <!--二次参数绑定拦截器 -->
+		<default-interceptor-ref name="pssStack" />
+		
+		<action name="*_*" class="{1}Action" method="{2}">
+			<!--列表 -->
+			<result>/WEB-INF/views/{1}/{1}.jsp</result>
+			<!--修改和添加跳转页面 -->
+			<result name="input">/WEB-INF/views/{1}/{1}_input.jsp</result>
+			<!--根据方法的结果视图 -->
+			<result name="{2}">/WEB-INF/views/{1}/{1}_{2}.jsp</result>
+			<!--删除和保存成功跳转到action -->
+			<result name="reload" type="redirectAction">
+				<param name="actionName">{1}</param>
+			</result>
+		</action>
+	</package>
+</struts>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Application context definition for PetClinic on Hibernate. -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+			http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+			http://www.springframework.org/schema/aop
+       	    http://www.springframework.org/schema/aop/spring-aop.xsd
+			">
+
+	<!--引入配置文件 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+	<!-- 扫描包 -->
+	<context:component-scan base-package="com.lxc.ssh" />
+	<!--开启注解支持 -->
+	 <tx:annotation-driven/>
+	<!--配置连接池 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close" p:driverClassName="${jdbc.driverClassName}" p:url="${jdbc.url}"
+		p:username="${jdbc.username}" p:password="${jdbc.password}" />
+
+	<!-- sessionFactory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+		p:dataSource-ref="dataSource">
+		<!--2.配置映射文件 -->                                 
+		<property name="mappingLocations" value="classpath:com/lxc/ssh/domain/*.hbm.xml" />
+		<!--3.其他配置 -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>
+				<!--开启二级缓存 -->
+				<!-- <prop key="hibernate.cache.use_second_level_cache">true</prop> -->
+				<!--开启查询缓存:只能对没有查询条件的使用 -->
+				<!-- <prop key="hibernate.cache.use_query_cache">true</prop> -->
+				<!--设置供应商实现类 -->
+				<!-- <prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop> -->
+			</props>
+		</property>
+	</bean>
+	
+	<!-- <bean id="baseDao" class="com.lxc.ssh.dao.BaseDao">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean> -->
+	
+	
+	<!-- 事物管理器 -->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager" p:sessionFactory-ref="sessionFactory"/>
+	
+	<aop:config>
+		<!--切入点  -->
+				<aop:pointcut expression="execution(* com.lxc.ssh.service.I*Service.*(..))" id="pointcutId"  />
+				<aop:advisor advice-ref="adviceId" pointcut-ref="pointcutId" />
+    </aop:config>
+    
+	<tx:advice id="adviceId" transaction-manager="transactionManager">
+			<tx:attributes>
+			<!--get方法find的都不需要事物  -->
+				<tx:method name="get*" read-only="true" propagation="SUPPORTS"/>
+				<tx:method name="find*" read-only="true" propagation="SUPPORTS"/>
+				<tx:method name="query*" read-only="true" propagation="SUPPORTS"/>
+				<!--其他的方法需要事物  -->
+				<tx:method name="*" />
+			</tx:attributes>
+	</tx:advice>
+	
+</beans>

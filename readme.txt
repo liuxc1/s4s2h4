@@ -1,0 +1,1 @@
+集成spring 4.1.2  hibernate 4.3.8 stauts2 2.3
